@@ -30,10 +30,13 @@ _SUPPORTED_T2_PLATFORM_TRIPLES = [
     "aarch64-apple-ios",
     "aarch64-linux-android",
     "aarch64-unknown-linux-gnu",
+    "aarch64-unknown-none",
     "arm-unknown-linux-gnueabi",
     "i686-linux-android",
     "i686-unknown-freebsd",
     "powerpc-unknown-linux-gnu",
+    "riscv32imac-unknown-none-elf",
+    "riscv64imac-unknown-none-elf",
     "s390x-unknown-linux-gnu",
     "wasm32-unknown-unknown",
     "wasm32-wasi",
@@ -49,6 +52,8 @@ _SUPPORTED_CPU_ARCH = [
     "powerpc",
     "s390x",
     "x86_64",
+    "riscv32imac",
+    "riscv64imac",
 ]
 
 _SUPPORTED_SYSTEMS = [

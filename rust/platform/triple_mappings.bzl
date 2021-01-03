@@ -30,6 +30,7 @@ _SYSTEM_TO_BUILTIN_SYS_SUFFIX = {
     "windows": "windows",
     "ios": "ios",
     "android": "android",
+    "none": "none",
     "emscripten": None,
     "unknown": None,
     "wasi": None,
@@ -53,6 +54,7 @@ _SYSTEM_TO_BINARY_EXT = {
     # windows target
     "unknown": ".wasm",
     "wasi": ".wasm",
+    "none": "",
 }
 
 _SYSTEM_TO_STATICLIB_EXT = {
@@ -64,6 +66,9 @@ _SYSTEM_TO_STATICLIB_EXT = {
     "emscripten": ".js",
     "unknown": "",
     "wasi": "",
+    # This reflects Rust's behavior for the aarch64-unknown-none target,
+    # which produces .a files when invoked to build a staticlib.
+    "none": ".a",
 }
 
 _SYSTEM_TO_DYLIB_EXT = {
@@ -73,8 +78,12 @@ _SYSTEM_TO_DYLIB_EXT = {
     "ios": ".dylib",
     "windows": ".dll",
     "emscripten": ".js",
+    # This is currently a hack allowing us to have the proper
+    # generated extension for the wasm target, similarly to the
+    # windows target
     "unknown": ".wasm",
     "wasi": ".wasm",
+    "none": "",
 }
 
 # See https://github.com/rust-lang/rust/blob/master/src/libstd/build.rs
@@ -116,15 +125,21 @@ _SYSTEM_TO_STDLIB_LINKFLAGS = {
     "cloudabi": ["-lunwind", "-lc", "-lcompiler_rt"],
     "unknown": [],
     "wasi": [],
+    # We don't actually expect the stdlib to build for the "none" system,
+    # but we don't need extra flags for it.
+    "none": [],
 }
 
 def cpu_arch_to_constraints(cpu_arch):
-    plat_suffix = _CPU_ARCH_TO_BUILTIN_PLAT_SUFFIX[cpu_arch]
+    plat_suffix = _CPU_ARCH_TO_BUILTIN_PLAT_SUFFIX.get(cpu_arch)
 
-    if not plat_suffix:
-        fail("CPU architecture \"{}\" is not supported by rules_rust".format(cpu_arch))
+    if plat_suffix:
+        return ["@platforms//cpu:{}".format(plat_suffix)]
 
-    return ["@platforms//cpu:{}".format(plat_suffix)]
+    if cpu_arch.startswith("riscv"):
+        return ["@rules_rust//rust/platform/cpu:{}".format(cpu_arch)]
+
+    fail("CPU architecture \"{}\" is not supported by rules_rust".format(cpu_arch))
 
 def vendor_to_constraints(vendor):
     # TODO(acmcarther): Review:
